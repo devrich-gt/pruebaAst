@@ -1,0 +1,8 @@
+var aa = 10;
+
+si(true){
+    imprimir(aa);
+} sino {
+
+    imprimir("hola mundo!");
+}

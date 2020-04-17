@@ -1,0 +1,186 @@
+package analizador;
+
+/**
+ *
+ * @author Ricardo
+ */
+import java_cup.runtime.*;
+import java_cup.runtime.Symbol;
+import estructuras.*;
+import estructuras.sents.*;
+import estructuras.exp.*;
+import compartido.*;
+
+/*  seccion de codigo para el parser*/ 
+parser code
+{:
+    public Nodo raiz = new Documento();
+
+/* Metodo que es llamado al encontrar un error lexico */ 
+public void syntax_error(Symbol s) {
+	System.out.println("Error sintactico en la Linea  " + (s.right+1) + " Columna "+s.left+ ". Identificador " +s.value + " no reconocido." );
+    //Constantes.tablaErrores.add(Constantes.SINTACTICO, ". Identificador " + s.value + " no reconocido.", (s.right+1), s.left, "...");
+}
+
+/**Metodo al que se llama en el momento en que ya no es posible una recuperación de errores.*/
+public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{
+	System.out.println("Error sintactico No recuperable en la Linea  " + (s.right+1) +" Columna "+s.left+ ". Identificador " +s.value + " no reconocido." );
+    //Constantes.tablaErrores.add(Constantes.SINTACTICO, ".Error sintactico No recuperable:  Identificador " +s.value + " no reconocido.", (s.right+1), s.left, "...");
+}
+
+:}
+/*seccion de codigo*/
+action code
+{:
+	public Nodo hijo,hijo1,hijo2;
+:}
+/* simbolos terminales */
+/*palabras reservadas */
+terminal var, nulo, imprimir, s_if, s_else;
+terminal igual , par_a, par_c, llaveA, llaveC;
+
+/* simbolos utilizados en la gramatica*/
+terminal punto_coma;
+
+/* expresiones regulares */
+terminal cadena, numero,id, verdadero, falso, decimal;
+
+/* simbolos  no terminales*/
+non terminal Nodo INICIO;
+non terminal Sentencias SENTS, BLOQUE_C;
+non terminal Nodo SENT; 
+non terminal Id ID;
+non terminal Declaracion DECLARACION;
+non terminal Asignacion ASIGNACION;
+non terminal Imprimir IMPRIMIR;
+
+non terminal SentenciaIf S_IF, LIF;
+non terminal If IF, ELSE;
+
+non terminal Expresion E;
+non terminal Expresion VAlOR;
+
+/* seleccion para hacer precedenci de terminales*/
+//precedence left  op_mas, op_menos;
+
+
+/* eleccion de no terminal para que empiece la gramatica*/
+start with INICIO;
+
+/* definicion de la gramatica 
+*/
+INICIO  ::= SENTS:sents {:
+                System.out.println("Cup java analizando...");
+                raiz = new Documento(sents);
+                System.out.println("finalizado");
+                RESULT = raiz;
+            :}
+;
+
+SENTS   ::= SENTS:sents   SENT:sent{:
+                sents.add(sent);
+                RESULT = sents;
+            :}
+        |   SENT:sent {:
+                Sentencias sents = new Sentencias();
+                sents.add(sent);
+                RESULT = sents;
+            :}
+;
+
+SENT    ::= DECLARACION:s {:
+                RESULT = s;
+            :}
+        |   ASIGNACION:s {:
+                RESULT = s;
+            :}
+        |   IMPRIMIR:s {:
+                RESULT = s;
+            :}
+        |   S_IF:s {:
+                RESULT = s;
+            :}
+;
+
+ID ::= id:i {:
+        RESULT = new Id(i.toString());
+    :}
+;
+
+DECLARACION ::= var:i ID:id igual E:e  punto_coma{:
+                    RESULT = new Declaracion(id, e,iright, ileft);
+                :}
+            |   var:i ID:id  punto_coma{:
+                    RESULT = new Declaracion(id, iright, ileft);
+                :}
+;
+ASIGNACION  ::= ID:id igual:i E:e  punto_coma{:
+                    RESULT = new Asignacion(id, e, iright, ileft);
+                :}
+;
+IMPRIMIR    ::= imprimir:i par_a E:e par_c punto_coma {:
+                    RESULT = new Imprimir(e, iright, ileft);
+                :}
+;
+
+BLOQUE_C  ::= llaveA:i  llaveC {:
+                RESULT = new Sentencias(iright, ileft);
+            :}
+        |    llaveA:i SENTS:ss llaveC {:
+                RESULT = ss;
+            :}
+;
+
+S_IF    ::= LIF:lif ELSE:el {:
+                lif.add(el);
+                RESULT = lif; 
+            :}
+        |   LIF:lif {:
+                RESULT = lif;
+            :}
+;
+LIF ::= LIF:lif s_else IF:sif {:
+            lif.add(sif);
+            RESULT = lif;
+        :}
+    |   IF:sif {:
+            SentenciaIf lif = new SentenciaIf();
+            lif.add(sif);
+            RESULT = lif;
+        :}
+;
+IF  ::= s_if:n par_a E:e par_c BLOQUE_C:b {:
+            RESULT = new If(e, b, nright, nleft);
+        :}
+;
+ELSE  ::= s_else:n BLOQUE_C:b {:
+            RESULT = new If(new ValorExpresion(new Valor(true ), nright, nleft), b, nright, nleft);
+        :}
+;
+
+E   ::= VAlOR:e {:
+            RESULT = e;
+        :}
+;
+VAlOR   ::= numero:n {:
+            RESULT = new ValorExpresion(new Valor(Double.parseDouble(n.toString())), nright, nleft);
+        :}
+    |   cadena:n {:
+            RESULT = new ValorExpresion(new Valor(n.toString()), nright, nleft);
+        :}
+    |   decimal:n {:
+            RESULT = new ValorExpresion(new Valor( Double.parseDouble(n.toString())), nright, nleft);
+        :}
+    |   verdadero:n {:
+            RESULT = new ValorExpresion(new Valor(true ), nright, nleft);
+        :}
+    |   falso:n {:
+            RESULT = new ValorExpresion(new Valor(false ), nright, nleft);
+        :}
+    |   nulo:n {:
+            RESULT = new ValorExpresion(new Valor(), nright, nleft);
+        :}
+    |   ID:n {:
+            RESULT = n;
+        :}
+;

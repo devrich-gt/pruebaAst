@@ -1,0 +1,1 @@
+java -jar /Users/rich/Fuente/java-cup-11b.jar -parser CupSintactico -symbols CupSimbolos CupSintactico.cup
