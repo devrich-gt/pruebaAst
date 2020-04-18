@@ -18,6 +18,10 @@ public class Imprimir extends Nodo {
 
     public Expresion exp;
     
+    
+    public Imprimir(Expresion exp){
+        this.exp = exp;
+    }
     public Imprimir(Expresion exp, int fila, int columna){
         this.exp = exp;
         this.fila = fila;

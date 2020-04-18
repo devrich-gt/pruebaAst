@@ -23,12 +23,24 @@ public class PruebaAst {
      */
     public static void main(String[] args) {
         Constantes.salida = "";
-        Nodo resultado = Compilar.parserCup(Archivo.read("entrada1.txt"));
+        cup("entradaCup.txt");
+        //cc("entradaCC.txt");
+        
+    }
+    
+    public static void cup(String nombreArchivo){
+        Nodo resultado = Compilar.parserCup(Archivo.read(nombreArchivo));
+        if(resultado != null){
+            resultado.ejecutar(new Ambiente(new TablaSimbolos("main")));
+            Archivo.createFile("salida.txt", Constantes.salida);
+            System.out.println(resultado.grafo());
+        }
+    }
+    public static void cc(String nombreArchivo){
+        Nodo resultado = Compilar.parserJavaCC(Archivo.read(nombreArchivo));
         if(resultado != null){
             resultado.ejecutar(new Ambiente(new TablaSimbolos("main")));
             Archivo.createFile("salida.txt", Constantes.salida);
         }
-        
     }
-    
 }

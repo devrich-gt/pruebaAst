@@ -7,6 +7,7 @@ package compartido;
 
 import analizador.*;
 import estructuras.Nodo;
+import analizadorCC.Gramatica;
 import java.io.BufferedReader;
 import java.io.StringReader;
 
@@ -37,5 +38,17 @@ public class Compilar {
             return null;
         }
 
+    }
+    
+    public static Nodo parserJavaCC(String entrada){;
+        Gramatica parser = new Gramatica(new java.io.StringReader(entrada));
+        try {
+            Nodo raiz= parser.Start();
+            System.out.println("Analisis Exitoso!!");
+            return raiz;
+        }catch (Exception e) {
+                System.out.println(e.getMessage());
+        }
+        return null;
     }
 }

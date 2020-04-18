@@ -1,8 +1,7 @@
 var aa = 10;
 
-si(true){
+si(verdadero){
     imprimir(aa);
 } sino {
-
     imprimir("hola mundo!");
 }

@@ -1,0 +1,164 @@
+options {
+//MULTI=true;
+STATIC = false;
+ERROR_REPORTING = true;
+//IGNORE_CASE = true;
+OUTPUT_DIRECTORY="/Users/rich/Documents/proyectos/pruebaAst/src/analizadorCC";
+
+}
+
+PARSER_BEGIN(Gramatica)
+package analizadorCC;
+
+import estructuras.*;
+import estructuras.sents.*;
+import estructuras.exp.*;
+import compartido.*;
+/**
+ *
+ * @author Ricardo
+ */
+
+
+public class Gramatica {
+
+    
+}
+PARSER_END(Gramatica)
+
+SKIP : 
+{ 
+    " "|"\n" | "\r" | "\r\n" | "\t"
+    | <"//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+    | <"/*" (~["*"])* "*" (~["/"] (~["*"])* "*")* "/">
+}
+
+/*************************** tokens *******************************************/
+TOKEN :
+{
+        <PUNTO_COMA: ";">
+    |   <LLAVE_A: "{">
+    |   <LLAVE_C: "}">
+    |   <PAR_A: "(">
+    |   <PAR_C: ")">
+
+    | <INCR: "++" > 
+    | <DECR: "--" > 
+  
+    | <MAS : "+" >
+
+    | <MULT:"*" > 
+
+    | <IGUAL_IGUAL: "==" >
+
+    | <OR: "||">
+    | <AND: "&&">
+}
+/***********************************  palabras reservadas *********************/
+TOKEN: {
+        <VAR: "var">
+    |   <IMPRIMIR: "imprimir">
+    |   <SI: "si">
+    |   <SINO: "sino">
+    |   <FALSO: "false">
+    |   <VERDADERO: "true">
+    |   <NULO: "nulo">
+
+   
+    
+}
+/***********************************  expresiones regulares *******************/
+TOKEN: {
+    <NUM: (["0" - "9"])+>   
+    | <ID : ["a"-"z","A"-"Z"](["a"-"z","A"-"Z","0"-"9","_"])*>
+    | <NUM_D: (<NUM>)"." (<NUM>)>
+    | <CADENA: "\"" (~["\n","\r", "\""])* "\"">
+}
+
+Nodo Start():
+{
+    Documento raiz;
+    Sentencias sents = new Sentencias();
+    Nodo sent;
+}
+{
+    sent = Sent(){sents.add(sent);} 
+    (
+            sent = Sent(){sents.add(sent);}
+    )*
+    {
+        raiz = new Documento(sents);
+        return raiz;
+    }
+}
+
+Nodo Sent():
+{
+    Nodo s;
+}
+{
+    (
+            s = getImprimir() 
+    )
+    {
+        retuen s;
+    }
+}
+
+Imprimir getImprimir():
+{
+    Expresion e;
+}
+{
+    <IMPRIMIR> <PAR_A> e = E() <PAR_A>  <PUNTO_COMA> 
+    {
+        return new Imprimir(e);
+    }
+}
+
+
+Expresion E():
+{
+    Nodo e;
+}
+{
+    e = getExpresion(){return e;}
+}
+
+
+Expresion getExpresion():
+{
+    Expresion e1;
+    Token idVar, t1;
+    Nodo id;
+}
+{
+    (
+            t1 = <NUM_D> {
+                e1 = new ValorExpresion(new Valor(Double.parseDouble(t1.image.toString())));
+            }
+        |   t1 = <NUM> {
+                e1 = new ValorExpresion(new Valor(Double.parseDouble(t1.image.toString())));
+            }
+        |   e1 = Cadena() 
+        
+        |   <PAR_A> e1 = E() <PAR_C>
+    )
+    {
+        return e1;
+    }
+}
+
+
+ValorExpresion Cadena():
+{
+    Token t1;
+}
+{
+    t1 = <CADENA> {
+        String son = t1.image.toString().replaceAll("\"", "");
+        return new ValorExpresion(new Valor(son));;
+    }
+}
+
+
